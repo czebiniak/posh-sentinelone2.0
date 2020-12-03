@@ -127,7 +127,7 @@ class S1API {
     }
 
     # Initial call to get multiple S1Agents
-    # all subsequent actions ahppen from the Threat object
+    # all subsequent actions happen from the Threat object
     [System.Object]GetAgents([String]$AgentName, [Int]$Limit,[Boolean]$Infected) {
 
         $agents = $this.Get('/web/api/v2.0/agents?limit={0:d0}&infected={1}&computerName__like={2}' -f ($Limit,$Infected,$AgentName))
@@ -145,7 +145,7 @@ class S1API {
     }
 
     # Initial call to get an S1Threat
-    # all subsequent actions ahppen from the Threat object
+    # all subsequent actions happen from the Threat object
     [System.Object]GetThreat([String]$id) {
         $threat = [S1Threat]::new($this, $this.Get('/web/api/v2.0/threats?ids='+$id))
 
@@ -156,7 +156,7 @@ class S1API {
     }
 
     # Initial call to get multiple S1Threats
-    # all subsequent actions ahppen from the Threat object
+    # all subsequent actions happen from the Threat object
     [System.Object]GetThreats([Boolean]$Resolved) {
 
         $threats = $this.Get('/web/api/v2.0/threats')
@@ -674,18 +674,23 @@ function Get-S1Users () {
     return $s1.GetUsers($Email)
 }
 
+$securedValue = Read-Host -AsSecureString "Enter your APIKEY"
+$bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($securedValue)
+$USERAPIKEY = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
+
+$MGMT= "https://XXXXX-000.sentinelone.net"
 
 
-$s1 = [S1API]::new("", "")
-$s1.Proxy = "http://192.168.150.148:8080"
+$s1 = [S1API]::new("$MGMT", "$USERAPIKEY")
+$s1.Proxy = ""
 $s1.ProxyUseDefaultCredentials = $true
 
 #Get-S1Agent -AgentName fatboy | ft computerName, lastLoggedInUserName, infected
 #(Get-S1Agent -AgentName DESKTOP-E42ET4I).AbortSc
 #(Get-S1Threats).Unquarantine()
 #(Get-S1Threat -ThreatID 417498202662931194).ForensicsExport('json')
-$user = Get-S1Users
-$user
+#$user = Get-S1Users
+#$user
 
 
 
