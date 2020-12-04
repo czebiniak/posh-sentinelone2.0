@@ -32,6 +32,7 @@ class S1API {
 
     }
 
+<#
     # Performs a user based authentication against the API
     # Definitely don't recommend using this method ever
     # TODO: Make this work...SECURELY
@@ -42,7 +43,7 @@ class S1API {
             "password"=$Password;
         }
         
-        $results = $this.Post('/web/api/v2.0/users/login', ($body | ConvertTo-Json))
+        $results = $this.Post('/web/api/v2.1/users/login', ($body | ConvertTo-Json))
 
         Write-Host $results
 
@@ -54,6 +55,8 @@ class S1API {
         }
 
     }
+
+#>
 
     # Performs an HTTP Get request against the specified endpoint
     [System.Object]Get([String]$Endpoint) {
@@ -118,19 +121,19 @@ class S1API {
 
         return $response.data
     }
-    
+
     # Initial call to get an S1Agent
     # all subsequent actions happen from the Agent object
     [System.Object]GetAgent([String]$AgentName) {
-        $agent = [S1Agent]::new($this, $this.Get('/web/api/v2.0/agents?computerName='+$AgentName))
+        $agent = [S1Agent]::new($this, $this.Get('/web/api/v2.1/agents?computerName='+$AgentName))
         return $agent
     }
 
     # Initial call to get multiple S1Agents
-    # all subsequent actions ahppen from the Threat object
+    # all subsequent actions happen from the Threat object
     [System.Object]GetAgents([String]$AgentName, [Int]$Limit,[Boolean]$Infected) {
 
-        $agents = $this.Get('/web/api/v2.0/agents?limit={0:d0}&infected={1}&computerName__like={2}' -f ($Limit,$Infected,$AgentName))
+        $agents = $this.Get('/web/api/v2.1/agents?limit={0:d0}&infected={1}&computerName__like={2}' -f ($Limit,$Infected,$AgentName))
         
         # If there are no agents, return an empty Hashtable
         if(!$agents) {
@@ -145,9 +148,9 @@ class S1API {
     }
 
     # Initial call to get an S1Threat
-    # all subsequent actions ahppen from the Threat object
+    # all subsequent actions happen from the Threat object
     [System.Object]GetThreat([String]$id) {
-        $threat = [S1Threat]::new($this, $this.Get('/web/api/v2.0/threats?ids='+$id))
+        $threat = [S1Threat]::new($this, $this.Get('/web/api/v2.1/threats?ids='+$id))
 
         if(!$threat) {
             return $null
@@ -156,10 +159,10 @@ class S1API {
     }
 
     # Initial call to get multiple S1Threats
-    # all subsequent actions ahppen from the Threat object
+    # all subsequent actions happen from the Threat object
     [System.Object]GetThreats([Boolean]$Resolved) {
 
-        $threats = $this.Get('/web/api/v2.0/threats')
+        $threats = $this.Get('/web/api/v2.1/threats')
 
         if(!$threats) {
             return $null
@@ -171,10 +174,22 @@ class S1API {
         }
         return $threats
     }
+        # Count all agents
+    [System.Object]GetAgentCount() {
+        $agentCount = $this.Get('/web/api/v2.1/agents/count')
+        return $agentCount
+    }
+
+         # Get Sites
+    [System.Object]GetSiteAgents([String]$SiteID) {
+        $agentList = [S1Agent]::new($this, $this.Get('/web/api/v2.1/agents?siteIds='+$SiteID))
+        return $agentList
+    }
+#Example https://XXXXXX.sentinelone.net/web/api/v2.1/agents?siteIds=XXXXXXXXXX
 
     [System.Object]GetUsers ([String]$Email) {
            
-        $users = $this.Get('/web/api/v2.0/users?query='+$Email)
+        $users = $this.Get('/web/api/v2.1/users?query='+$Email)
 
         if(!$users) {
             return $null
@@ -220,11 +235,11 @@ class S1Threat {
     }
 
     # Marks the threat as Benign
-    # /apidoc/#!/Threats/post_web_api_v2_0_threats_mark_as_benign
+    # /apidoc/#!/Threats/post_web_api_v2_1_threats_mark_as_benign
     [boolean]MarkAsBenign() {
 
         try {
-            $result = $this.s1.Post('/web/api/v2.0/threats/mark-as-benign', ($this.PostBody | ConvertTo-Json))
+            $result = $this.s1.Post('/web/api/v2.1/threats/mark-as-benign', ($this.PostBody | ConvertTo-Json))
             return $true
         } catch {
             $_.Exception.Message
@@ -235,11 +250,11 @@ class S1Threat {
 
 
     # Resolve a threat
-    # /apidoc/#!/Threats/post_web_api_v2_0_threats_mark_as_resolved
+    # /apidoc/#!/Threats/post_web_api_v2_1_threats_mark_as_resolved
     [boolean]Resolve() {
 
         try {
-            $result = $this.s1.Post('/web/api/v2.0/threats/mark-as-resolved', ($this.PostBody | ConvertTo-Json))
+            $result = $this.s1.Post('/web/api/v2.1/threats/mark-as-resolved', ($this.PostBody | ConvertTo-Json))
             return $true
         } catch {
             $_.Exception.Message
@@ -249,11 +264,11 @@ class S1Threat {
     }
 
     # Quarantine a threat
-    # /apidoc/#!/Threats/post_web_api_v2_0_threats_mitigate_action
+    # /apidoc/#!/Threats/post_web_api_v2_1_threats_mitigate_action
     [boolean]Quarantine() {
 
         try {
-            $result = $this.s1.Post('/web/api/v2.0/threats/mitigate/quarantine', ($this.PostBody | ConvertTo-Json))
+            $result = $this.s1.Post('/web/api/v2.1/threats/mitigate/quarantine', ($this.PostBody | ConvertTo-Json))
             return $true
         } catch {
             $_.Exception.Message
@@ -262,11 +277,11 @@ class S1Threat {
     }
 
     # Un-Quarantines a file
-    # /apidoc/#!/Threats/post_web_api_v2_0_threats_mitigate_action
+    # /apidoc/#!/Threats/post_web_api_v2_1_threats_mitigate_action
     [boolean]Unquarantine() {
 
         try {
-            $result = $this.s1.Post('/web/api/v2.0/threats/mitigate/un-quarantine', ($this.PostBody | ConvertTo-Json))
+            $result = $this.s1.Post('/web/api/v2.1/threats/mitigate/un-quarantine', ($this.PostBody | ConvertTo-Json))
             return $true
         } catch {
             $_.Exception.Message
@@ -275,11 +290,11 @@ class S1Threat {
     }
 
     # Rollback Threat
-    # /apidoc/#!/Threats/post_web_api_v2_0_threats_mitigate_action
+    # /apidoc/#!/Threats/post_web_api_v2_1_threats_mitigate_action
     [boolean]Rollback() {
 
         try {
-            $result = $this.s1.Post('/web/api/v2.0/threats/mitigate/rollback-remediation', ($this.PostBody | ConvertTo-Json))
+            $result = $this.s1.Post('/web/api/v2.1/threats/mitigate/rollback-remediation', ($this.PostBody | ConvertTo-Json))
             return $true
         } catch {
             $_.Exception.Message
@@ -288,11 +303,11 @@ class S1Threat {
     }
 
     # Kill Threat
-    # /apidoc/#!/Threats/post_web_api_v2_0_threats_mitigate_action
+    # /apidoc/#!/Threats/post_web_api_v2_1_threats_mitigate_action
     [boolean]Kill() {
 
         try {
-            $result = $this.s1.Post('/web/api/v2.0/threats/mitigate/kill', ($this.PostBody | ConvertTo-Json))
+            $result = $this.s1.Post('/web/api/v2.1/threats/mitigate/kill', ($this.PostBody | ConvertTo-Json))
             return $true
         } catch {
             $_.Exception.Message
@@ -301,11 +316,11 @@ class S1Threat {
     }
 
     # Remediate Threat
-    # /apidoc/#!/Threats/post_web_api_v2_0_threats_mitigate_action
+    # /apidoc/#!/Threats/post_web_api_v2_1_threats_mitigate_action
     [boolean]Remediate() {
 
         try {
-            $result = $this.s1.Post('/web/api/v2.0/threats/mitigate/remediate', ($this.PostBody | ConvertTo-Json))
+            $result = $this.s1.Post('/web/api/v2.1/threats/mitigate/remediate', ($this.PostBody | ConvertTo-Json))
             return $true
         } catch {
             $_.Exception.Message
@@ -314,11 +329,11 @@ class S1Threat {
     }
 
     # Get a list of connects the Threat made
-    # /apidoc/#!/Forensics/get_web_api_v2_0_threats_threat_id_forensics_connections
+    # /apidoc/#!/Forensics/get_web_api_v2_1_threats_threat_id_forensics_connections
     [System.Object]Connections() {
 
         try {
-            $result = $this.s1.Get("/web/api/v2.0/threats/$($this.id)/forensics/connections")
+            $result = $this.s1.Get("/web/api/v2.1/threats/$($this.id)/forensics/connections")
             return $result
         } catch {
             $_.Exception.Message
@@ -327,31 +342,31 @@ class S1Threat {
     }
 
     # Get Forensics
-    # /apidoc/#!/Forensics/get_web_api_v2_0_threats_threat_id_forensics
+    # /apidoc/#!/Forensics/get_web_api_v2_1_threats_threat_id_forensics
     [System.Object]Forensics() {
 
-        $result = $this.s1.Get('/web/api/v2.0/threats/{0}/forensics' -f $this.id)
+        $result = $this.s1.Get('/web/api/v2.1/threats/{0}/forensics' -f $this.id)
 
         return $result.result
 
     }
 
     # Get Forensics
-    # /apidoc/#!/Forensics/get_web_api_v2_0_threats_threat_id_forensics
+    # /apidoc/#!/Forensics/get_web_api_v2_1_threats_threat_id_forensics
     [System.Object]ForensicsDetails() {
 
-        $result = $this.s1.Get('/web/api/v2.0/threats/{0}/forensics/details' -f $this.id)
+        $result = $this.s1.Get('/web/api/v2.1/threats/{0}/forensics/details' -f $this.id)
 
         return $result.result
 
     }
 
     # Download the Forensic Data
-    # /apidoc/#!/Forensics/get_web_api_v2_0_threats_threat_id_forensics_export_export_format
+    # /apidoc/#!/Forensics/get_web_api_v2_1_threats_threat_id_forensics_export_export_format
     [System.Object]ForensicsExport([String]$Format) {
         
         try {
-            $result = $this.s1.Get("/web/api/v2.0/threats/$($this.id)/forensics/export/$($Format)")
+            $result = $this.s1.Get("/web/api/v2.1/threats/$($this.id)/forensics/export/$($Format)")
             return $result
         } catch {
             return $null
@@ -388,12 +403,12 @@ class S1Agent {
     }
 
     # Disconnects the Agent from the network
-    # /apidoc/#!/Agent_Actions/post_web_api_v2_0_agents_actions_disconnect
+    # /apidoc/#!/Agent_Actions/post_web_api_v2_1_agents_actions_disconnect
     # Method: POST
     [boolean]DisconnectNetwork() {
 
         try {
-            $result = $this.s1.Post('/web/api/v2.0/agents/actions/disconnect', ($this.PostBody | ConvertTo-Json))
+            $result = $this.s1.Post('/web/api/v2.1/agents/actions/disconnect', ($this.PostBody | ConvertTo-Json))
             return $true
         } catch {
             $_.Exception.Message
@@ -402,12 +417,12 @@ class S1Agent {
     }
 
     # Connects the Agent to the network
-    # /apidoc/#!/Agent_Actions/post_web_api_v2_0_agents_actions_connect
+    # /apidoc/#!/Agent_Actions/post_web_api_v2_1_agents_actions_connect
     # Method: POST
     [boolean]ConnectNetwork() {
 
         try {
-            $result = $this.s1.Post('/web/api/v2.0/agents/actions/connect', ($this.PostBody | ConvertTo-Json))
+            $result = $this.s1.Post('/web/api/v2.1/agents/actions/connect', ($this.PostBody | ConvertTo-Json))
             return $true
         } catch {
             $_.Exception.Message
@@ -416,12 +431,12 @@ class S1Agent {
     }
 
     # Initiates a Full Disk Scan
-    # /apidoc/#!/Agent_Actions/post_web_api_v2_0_agents_actions_initiate_scan
+    # /apidoc/#!/Agent_Actions/post_web_api_v2_1_agents_actions_initiate_scan
     # Method: POST
     [boolean]InitiateScan() {
        
         try {
-            $result = $this.s1.Post('/web/api/v2.0/agents/actions/initiate-scan', ($this.PostBody | ConvertTo-Json))
+            $result = $this.s1.Post('/web/api/v2.1/agents/actions/initiate-scan', ($this.PostBody | ConvertTo-Json))
             return $true
         } catch {
             $_.Exception.Message
@@ -430,12 +445,12 @@ class S1Agent {
     }
 
     # Initiates a Full Disk Scan
-    # /apidoc/#!/Agent_Actions/post_web_api_v2_0_agents_actions_abort_scan
+    # /apidoc/#!/Agent_Actions/post_web_api_v2_1_agents_actions_abort_scan
     # Method: POST
     [boolean]AbortScan() {
         
         try {
-            $result = $this.s1.Post('/web/api/v2.0/agents/actions/abort-scan', ($this.PostBody | ConvertTo-Json))
+            $result = $this.s1.Post('/web/api/v2.1/agents/actions/abort-scan', ($this.PostBody | ConvertTo-Json))
             return $true
         } catch {
             $_.Exception.Message
@@ -444,12 +459,12 @@ class S1Agent {
     }
 
     # Lists all the processes on the Agent
-    # /apidoc/#!/Agents/get_web_api_v2_0_agents_processes
+    # /apidoc/#!/Agents/get_web_api_v2_1_agents_processes
     # Method: GET
     [System.Object]ListProcesses() {
         
         try {
-            $result = $this.s1.Get('/web/api/v2.0/agents/processes?ids='+$this.id)
+            $result = $this.s1.Get('/web/api/v2.1/agents/processes?ids='+$this.id)
             return $result
         } catch {
             $_.Exception.Message
@@ -458,12 +473,12 @@ class S1Agent {
     }
 
     # Lists all the applications on the Agent
-    # /apidoc/#!/Agents/get_web_api_v2_0_agents_applications
+    # /apidoc/#!/Agents/get_web_api_v2_1_agents_applications
     # Method: GET
     [System.Object]ListApplications() {
         
         try {
-            $result = $this.s1.Get('/web/api/v2.0/agents/applications?ids='+$this.id)
+            $result = $this.s1.Get('/web/api/v2.1/agents/applications?ids='+$this.id)
             return $result
         } catch {
             $_.Exception.Message
@@ -472,12 +487,12 @@ class S1Agent {
     }
 
     # Get the Passphrase for the Agent
-    # /apidoc/#!/Agents/get_web_api_v2_0_agents_passphrases
+    # /apidoc/#!/Agents/get_web_api_v2_1_agents_passphrases
     # Method: GET
     [System.Object]Passphrase() {
         
         try {
-            $result = $this.s1.Get('/web/api/v2.0/agents/passphrases?ids='+$this.id)
+            $result = $this.s1.Get('/web/api/v2.1/agents/passphrases?ids='+$this.id)
             return $result
         } catch {
             $_.Exception.Message
@@ -486,7 +501,7 @@ class S1Agent {
     }
 
     # Send a Message to the Agent
-    # /apidoc/#!/Agent_Actions/post_web_api_v2_0_agents_actions_broadcast
+    # /apidoc/#!/Agent_Actions/post_web_api_v2_1_agents_actions_broadcast
     # Method: POST
     [boolean]SendMessage($message) {
 
@@ -496,7 +511,7 @@ class S1Agent {
         $body.data.Add("message", $message)
         
         try {
-            $result = $this.s1.Post('/web/api/v2.0/agents/actions/broadcast?ids='+$this.id, ($body | ConvertTo-Json))
+            $result = $this.s1.Post('/web/api/v2.1/agents/actions/broadcast?ids='+$this.id, ($body | ConvertTo-Json))
             return $result
         } catch {
             $_.Exception.Message
@@ -505,12 +520,12 @@ class S1Agent {
     }
 
     # Approve an Uninstall Request
-    # /apidoc/#!/Agent_Actions/post_web_api_v2_0_agents_actions_approve_uninstall
+    # /apidoc/#!/Agent_Actions/post_web_api_v2_1_agents_actions_approve_uninstall
     # Method: POST
     [boolean]ApproveUninstall() {
         
         try {
-            $result = $this.s1.Post('/web/api/v2.0/agents/actions/approve-uninstall', ($this.PostBody | ConvertTo-Json))
+            $result = $this.s1.Post('/web/api/v2.1/agents/actions/approve-uninstall', ($this.PostBody | ConvertTo-Json))
             return $true
         } catch {
             $_.Exception.Message
@@ -519,12 +534,12 @@ class S1Agent {
     }
 
     # Reject an Uninstall Request
-    # /apidoc/#!/Agent_Actions/post_web_api_v2_0_agents_actions_reject_uninstall
+    # /apidoc/#!/Agent_Actions/post_web_api_v2_1_agents_actions_reject_uninstall
     # Method: POST
     [boolean]RejectUninstall() {
         
         try {
-            $result = $this.s1.Post('/web/api/v2.0/agents/actions/reject-uninstall', ($this.PostBody | ConvertTo-Json))
+            $result = $this.s1.Post('/web/api/v2.1/agents/actions/reject-uninstall', ($this.PostBody | ConvertTo-Json))
             return $true
         } catch {
             $_.Exception.Message
@@ -533,12 +548,12 @@ class S1Agent {
     }
 
     # Decommission Agent
-    # /apidoc/#!/Agent_Actions/post_web_api_v2_0_agents_actions_decommision
+    # /apidoc/#!/Agent_Actions/post_web_api_v2_1_agents_actions_decommision
     # Method: POST
     [boolean]Decommission() {
         
         try {
-            $result = $this.s1.Post('/web/api/v2.0/agents/actions/decommision', ($this.PostBody | ConvertTo-Json))
+            $result = $this.s1.Post('/web/api/v2.1/agents/actions/decommision', ($this.PostBody | ConvertTo-Json))
             return $true
         } catch {
             $_.Exception.Message
@@ -575,11 +590,11 @@ class S1User {
     }
 
     # Enable Two-Factor Authentication
-    # /apidoc/#!/Users/post_web_api_v2_0_users_2fa_enable
+    # /apidoc/#!/Users/post_web_api_v2_1_users_2fa_enable
     [boolean]Enable2FA () {
 
         try { 
-            $results = $this.s1.Post('/web/api/v2.0/users/2fa/enable', ($this.PostBody | ConvertTo-Json)) 
+            $results = $this.s1.Post('/web/api/v2.1/users/2fa/enable', ($this.PostBody | ConvertTo-Json)) 
         } catch {
             return $false
         }
@@ -588,11 +603,11 @@ class S1User {
     }
 
     # Disable Two-Factor Authentication
-    # /apidoc/#!/Users/post_web_api_v2_0_users_2fa_disable
+    # /apidoc/#!/Users/post_web_api_v2_1_users_2fa_disable
     [boolean]Disable2FA () {
 
         try { 
-            $results = $this.s1.Post('/web/api/v2.0/users/2fa/disable', ($this.PostBody | ConvertTo-Json)) 
+            $results = $this.s1.Post('/web/api/v2.1/users/2fa/disable', ($this.PostBody | ConvertTo-Json)) 
         } catch {
             return $false
         }
@@ -601,10 +616,10 @@ class S1User {
     }
 
     # Generates an API token for the user
-    # /apidoc/#!/Users/post_web_api_v2_0_users_generate_api_token
+    # /apidoc/#!/Users/post_web_api_v2_1_users_generate_api_token
     [System.Object]GenerateAPIToken () {
 
-        $result = try { $this.s1.Post('/web/api/v2.0/users/generate-api-token', ($this.PostBody | ConvertTo-Json)) } catch { $null }
+        $result = try { $this.s1.Post('/web/api/v2.1/users/generate-api-token', ($this.PostBody | ConvertTo-Json)) } catch { $null }
         
         if(!$result) {
             return $null
@@ -614,10 +629,10 @@ class S1User {
     }
 
     # Revokes an API token for the user
-    # /apidoc/#!/Users/post_web_api_v2_0_users_revoke_api_token
+    # /apidoc/#!/Users/post_web_api_v2_1_users_revoke_api_token
     [System.Object]RevokeAPIToken () {
 
-        $result = try { $this.s1.Post('/web/api/v2.0/users/revoke-api-token', ($this.PostBody | ConvertTo-Json)) } catch { $null }
+        $result = try { $this.s1.Post('/web/api/v2.1/users/revoke-api-token', ($this.PostBody | ConvertTo-Json)) } catch { $null }
         
         if(!$result) {
             return $null
@@ -653,7 +668,6 @@ function Get-S1Agents () {
         [Parameter()][Int]$Limit=25,
         [Parameter()][Switch]$Infected=$false
     )
-
     return $s1.GetAgents($AgentName,$Limit, $Infected)
 }
 
@@ -674,18 +688,44 @@ function Get-S1Users () {
     return $s1.GetUsers($Email)
 }
 
+function Get-S1Count () {
+    [CmdletBinding()]
+    Param()
+    return $s1.GetAgentCount()
+}
+
+function Get-S1Sites () {
+    [CmdletBinding()]
+    Param()
+    return $s1.GetSites()
+}
+
+function Get-S1AgentsSite () {
+    [CmdletBinding()]
+    Param(
+        [Parameter()][String]$SiteName,
+        [Parameter()][Int]$Limit=150
+    )
+    return $s1.GetSiteAgents($SiteName,$Limit)
+}
+
+$securedValue = Read-Host -AsSecureString "Enter your APIKEY"
+$bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($securedValue)
+$USERAPIKEY = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
+
+$MGMT= "https://XXXXX.sentinelone.net"
 
 
-$s1 = [S1API]::new("", "")
-$s1.Proxy = "http://192.168.150.148:8080"
+$s1 = [S1API]::new("$MGMT", "$USERAPIKEY")
+$s1.Proxy = ""
 $s1.ProxyUseDefaultCredentials = $true
 
 #Get-S1Agent -AgentName fatboy | ft computerName, lastLoggedInUserName, infected
 #(Get-S1Agent -AgentName DESKTOP-E42ET4I).AbortSc
 #(Get-S1Threats).Unquarantine()
 #(Get-S1Threat -ThreatID 417498202662931194).ForensicsExport('json')
-$user = Get-S1Users
-$user
+#$user = Get-S1Users
+#$user
 
 
 
