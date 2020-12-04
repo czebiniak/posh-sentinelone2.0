@@ -688,6 +688,7 @@ function Get-S1Users () {
     return $s1.GetUsers($Email)
 }
 
+<<<<<<< HEAD
 function Get-S1Count () {
     [CmdletBinding()]
     Param()
@@ -714,8 +715,18 @@ $bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($securedVal
 $USERAPIKEY = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
 
 $MGMT= "https://XXXXX.sentinelone.net"
+=======
+$securedValue = Read-Host -AsSecureString "Enter your APIKEY"
+$bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($securedValue)
+$USERAPIKEY = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
+>>>>>>> 90e3e7b5b18c8d53f0d853af2f515c7d0e4edb78
 
+$MGMT= "https://XXXXX-000.sentinelone.net"
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 90e3e7b5b18c8d53f0d853af2f515c7d0e4edb78
 $s1 = [S1API]::new("$MGMT", "$USERAPIKEY")
 $s1.Proxy = ""
 $s1.ProxyUseDefaultCredentials = $true
